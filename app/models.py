@@ -1,10 +1,23 @@
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Enum, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 import enum
 from datetime import datetime
 
 Base = declarative_base()
+
+class UserRole(enum.Enum):
+    ADMIN = "admin"
+    USER = "user"
+
+class User(Base):
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    password = Column(String)
+    role = Column(Enum(UserRole), default=UserRole.USER)
+    is_active = Column(Boolean, default=True)
 
 class PackageStatus(enum.Enum):
     CREATED = "created"
@@ -23,9 +36,11 @@ class Package(Base):
     recipient_address = Column(String)
     created_at = Column(DateTime, default=datetime.utcnow)
     current_status = Column(Enum(PackageStatus), default=PackageStatus.CREATED)
+    created_by = Column(Integer, ForeignKey("users.id"))
     
-    # Связь с историей статусов
+    # Связи
     status_history = relationship("PackageStatusHistory", back_populates="package")
+    creator = relationship("User")
 
 class PackageStatusHistory(Base):
     __tablename__ = "package_status_history"
@@ -36,6 +51,8 @@ class PackageStatusHistory(Base):
     location = Column(String)
     description = Column(String)
     timestamp = Column(DateTime, default=datetime.utcnow)
+    updated_by = Column(Integer, ForeignKey("users.id"))
     
-    # Связь с посылкой
-    package = relationship("Package", back_populates="status_history") 
+    # Связи
+    package = relationship("Package", back_populates="status_history")
+    updater = relationship("User") 

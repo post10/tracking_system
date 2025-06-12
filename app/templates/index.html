@@ -5,115 +5,1027 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Система отслеживания посылок</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="{{ url_for('static', path='/css/style.css') }}" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --military-dark: #2c3e50;
+            --military-green: #34495e;
+            --military-light: #ecf0f1;
+            --military-accent: #95a5a6;
+            --military-text: #ecf0f1;
+            --military-hover: #7f8c8d;
+            --military-border: #95a5a6;
+        }
+
+        body {
+            font-family: 'Roboto Mono', monospace;
+            background-color: #f8f9fa;
+            color: var(--military-text);
+        }
+
+        .package-card {
+            margin-bottom: 20px;
+            background-color: var(--military-green);
+            border: 1px solid var(--military-border);
+            color: var(--military-text);
+        }
+
+        .status-history {
+            margin-top: 10px;
+        }
+
+        .qr-code {
+            max-width: 200px;
+            margin: 10px 0;
+            border: 2px solid var(--military-border);
+            padding: 5px;
+            background-color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .sidebar {
+            min-height: 100vh;
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-right: 1px solid #dee2e6;
+            position: fixed;
+            width: 250px;
+        }
+
+        .sidebar h4 {
+            color: #212529;
+        }
+
+        .sidebar .nav-link {
+            color: #495057;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+
+        .sidebar .nav-link:hover {
+            background-color: #e9ecef;
+        }
+
+        .sidebar .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .main-wrapper {
+            margin-left: 250px;
+            padding: 20px;
+            min-height: 100vh;
+            background-color: #fff;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .card {
+            background-color: var(--military-green);
+            border: 1px solid var(--military-border);
+            color: var(--military-text);
+        }
+
+        .card-header {
+            background-color: var(--military-dark);
+            border-bottom: 1px solid var(--military-border);
+            color: var(--military-text);
+        }
+
+        .btn-primary {
+            background-color: var(--military-accent);
+            border-color: var(--military-border);
+            color: var(--military-dark);
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--military-hover);
+            border-color: var(--military-hover);
+            color: var(--military-dark);
+        }
+
+        .btn-secondary {
+            background-color: var(--military-green);
+            border-color: var(--military-border);
+            color: var(--military-text);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--military-hover);
+            border-color: var(--military-hover);
+            color: var(--military-text);
+        }
+
+        .form-control, .form-select {
+            background-color: var(--military-dark);
+            border: 1px solid var(--military-border);
+            color: var(--military-text);
+        }
+
+        .form-control:focus, .form-select:focus {
+            background-color: var(--military-dark);
+            border-color: var(--military-accent);
+            color: var(--military-text);
+            box-shadow: 0 0 0 0.25rem rgba(149, 165, 166, 0.25);
+        }
+
+        .list-group-item {
+            background-color: var(--military-green);
+            border: 1px solid var(--military-border);
+            color: var(--military-text);
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--military-text);
+            border-bottom: 2px solid var(--military-border);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .package-filters {
+            margin-bottom: 20px;
+        }
+
+        .package-list {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        #logoutBtn {
+            width: 100%;
+            margin-top: 20px;
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: white;
+        }
+
+        #logoutBtn:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+            }
+            .main-wrapper {
+                margin-left: 0;
+            }
+        }
+
+        /* Стили для формы входа */
+        #loginForm {
+            background-color: var(--military-dark);
+        }
+
+        #loginForm .card {
+            background-color: var(--military-green);
+            border: 2px solid var(--military-border);
+        }
+
+        #loginForm h2 {
+            color: var(--military-text);
+            text-align: center;
+            border-bottom: none;
+        }
+
+        /* Анимации */
+        .nav-link, .btn, .card {
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover, .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Стили для скроллбара */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--military-dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--military-accent);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--military-hover);
+        }
+
+        .content-section h2 {
+            color: #212529;
+            margin-bottom: 20px;
+        }
+
+        .content-section h4 {
+            color: #212529;
+            margin-bottom: 15px;
+        }
+
+        .content-section h5 {
+            color: #212529;
+        }
+
+        .content-section h6 {
+            color: #212529;
+        }
+    </style>
 </head>
 <body>
-    <div class="container mt-5">
-        <h1 class="text-center mb-4">Система отслеживания посылок</h1>
-        
-        <!-- Навигация -->
-        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="track-tab" data-bs-toggle="tab" data-bs-target="#track" type="button" role="tab">Отследить посылку</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="create-tab" data-bs-toggle="tab" data-bs-target="#create" type="button" role="tab">Создать посылку</button>
-            </li>
-        </ul>
-
-        <!-- Содержимое вкладок -->
-        <div class="tab-content" id="myTabContent">
-            <!-- Вкладка отслеживания -->
-            <div class="tab-pane fade show active" id="track" role="tabpanel">
-                <div class="row justify-content-center mb-5">
-                    <div class="col-md-6">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Форма авторизации -->
+            <div id="loginForm" class="col-12 p-4">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 col-lg-4">
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Отследить посылку</h5>
-                                <form id="trackingForm">
+                                <h2 class="text-center mb-4">Вход в систему</h2>
+                                <form id="login">
                                     <div class="mb-3">
-                                        <input type="text" class="form-control" id="trackingNumber" 
-                                               placeholder="Введите номер отслеживания" required>
+                                        <label for="username" class="form-label">Имя пользователя</label>
+                                        <input type="text" class="form-control" id="username" required>
                                     </div>
-                                    <button type="submit" class="btn btn-primary w-100">Отследить</button>
+                                    <div class="mb-3">
+                                        <label for="password" class="form-label">Пароль</label>
+                                        <input type="password" class="form-control" id="password" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">Войти</button>
                                 </form>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Результаты отслеживания -->
-                <div id="trackingResult" class="d-none">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Информация о посылке</h5>
-                            <div id="packageInfo"></div>
-                            <div id="statusHistory" class="mt-4">
-                                <h6>История статусов:</h6>
-                                <div id="statusTimeline"></div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Вкладка создания посылки -->
-            <div class="tab-pane fade" id="create" role="tabpanel">
-                <div class="row justify-content-center">
-                    <div class="col-md-8">
+            <!-- Основной контент (скрыт до авторизации) -->
+            <div id="mainContent" class="hidden">
+                <!-- Боковое меню -->
+                <div class="sidebar">
+                    <div class="mb-4">
+                        <h4>Добро пожаловать, <span id="userInfo"></span></h4>
+                        <button id="logoutBtn" class="btn btn-secondary">Выйти</button>
+                    </div>
+                    <nav class="nav flex-column">
+                        <a class="nav-link active" href="#" data-section="createPackage">Создать посылку</a>
+                        <a class="nav-link" href="#" data-section="trackPackage">Отследить посылку</a>
+                        <a class="nav-link" href="#" data-section="profile">Мой профиль</a>
+                        <a class="nav-link" href="#" data-section="myPackages">Мои посылки</a>
+                        <a class="nav-link admin-only hidden" href="#" data-section="allPackages">Все посылки</a>
+                    </nav>
+                </div>
+
+                <!-- Основной контент -->
+                <div class="main-wrapper">
+                    <!-- Секция создания посылки -->
+                    <div id="createPackageSection" class="content-section active">
+                        <h2>Создать новую посылку</h2>
                         <div class="card">
                             <div class="card-body">
-                                <h5 class="card-title">Создать новую посылку</h5>
                                 <form id="createPackageForm">
                                     <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Отправитель</label>
-                                            <input type="text" class="form-control" id="senderName" required>
+                                        <div class="col-md-6">
+                                            <h4>Информация об отправителе</h4>
+                                            <div class="mb-3">
+                                                <label for="sender_name" class="form-label">Имя отправителя</label>
+                                                <input type="text" class="form-control" id="sender_name" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="sender_address" class="form-label">Адрес отправителя</label>
+                                                <input type="text" class="form-control" id="sender_address" required>
+                                            </div>
                                         </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Адрес отправителя</label>
-                                            <input type="text" class="form-control" id="senderAddress" required>
+                                        <div class="col-md-6">
+                                            <h4>Информация о получателе</h4>
+                                            <div class="mb-3">
+                                                <label for="recipient_name" class="form-label">Имя получателя</label>
+                                                <input type="text" class="form-control" id="recipient_name" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="recipient_address" class="form-label">Адрес получателя</label>
+                                                <input type="text" class="form-control" id="recipient_address" required>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Получатель</label>
-                                            <input type="text" class="form-control" id="recipientName" required>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">Адрес получателя</label>
-                                            <input type="text" class="form-control" id="recipientAddress" required>
-                                        </div>
-                                    </div>
-                                    <button type="submit" class="btn btn-success w-100">Создать посылку</button>
+                                    <button type="submit" class="btn btn-primary">Создать посылку</button>
                                 </form>
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Результат создания посылки -->
-                <div id="createResult" class="d-none mt-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Посылка создана</h5>
+                    <!-- Секция отслеживания посылки -->
+                    <div id="trackPackageSection" class="content-section">
+                        <h2>Отследить посылку</h2>
+                        <div class="card">
+                            <div class="card-body">
+                                <form id="checkStatusForm">
+                                    <div class="mb-3">
+                                        <label for="trackingNumber" class="form-label">Номер отслеживания</label>
+                                        <input type="text" class="form-control" id="trackingNumber" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="qrCode" class="form-label">Или загрузить QR-код</label>
+                                        <input type="file" class="form-control" id="qrCode" accept="image/*">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Проверить статус</button>
+                                </form>
+                            </div>
+                        </div>
+                        <div id="trackingResults" class="mt-4"></div>
+                    </div>
+
+                    <!-- Секция профиля -->
+                    <div id="profileSection" class="content-section">
+                        <h2>Мой профиль</h2>
+                        <div class="card">
+                            <div class="card-body">
+                                <div id="profileInfo"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Секция всех посылок (только для админа) -->
+                    <div id="allPackagesSection" class="content-section">
+                        <h2>Все посылки</h2>
+                        <div class="package-filters">
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div id="newPackageInfo"></div>
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="searchTrackingNumber" placeholder="Поиск по номеру отслеживания">
                                 </div>
-                                <div class="col-md-6 text-center">
-                                    <div id="qrCode"></div>
-                                    <button class="btn btn-primary mt-3" onclick="printQR()">Распечатать QR-код</button>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="statusFilter">
+                                        <option value="">Все статусы</option>
+                                        <option value="created">Создана</option>
+                                        <option value="in_transit">В пути</option>
+                                        <option value="delivered">Доставлена</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-primary" onclick="applyFilters()">Применить фильтры</button>
                                 </div>
                             </div>
                         </div>
+                        <div id="packagesList" class="package-list"></div>
+                    </div>
+
+                    <!-- Секция моих посылок (для обычных пользователей) -->
+                    <div id="myPackagesSection" class="content-section">
+                        <h2>Мои посылки</h2>
+                        <div class="package-filters">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <input type="text" class="form-control" id="mySearchTrackingNumber" placeholder="Поиск по номеру отслеживания">
+                                </div>
+                                <div class="col-md-4">
+                                    <select class="form-select" id="myStatusFilter">
+                                        <option value="">Все статусы</option>
+                                        <option value="created">Создана</option>
+                                        <option value="in_transit">В пути</option>
+                                        <option value="delivered">Доставлена</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-primary" onclick="applyMyFilters()">Применить фильтры</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="myPackagesList" class="package-list"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', path='/js/main.js') }}"></script>
+    <script>
+        let token = '';
+        let currentUser = null;
+        let allPackages = [];
+
+        // Функция для сохранения токена
+        function saveToken(newToken) {
+            token = newToken;
+            localStorage.setItem('token', token);
+        }
+
+        // Функция для получения токена
+        function getToken() {
+            return localStorage.getItem('token') || token;
+        }
+
+        // Функция для проверки авторизации
+        async function checkAuth() {
+            const token = getToken();
+            if (!token) {
+                showLoginForm();
+                return false;
+            }
+
+            try {
+                const response = await fetch('/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                if (response.ok) {
+                    currentUser = await response.json();
+                    showMainContent();
+                    return true;
+                } else {
+                    showLoginForm();
+                    return false;
+                }
+            } catch (error) {
+                console.error('Ошибка проверки авторизации:', error);
+                showLoginForm();
+                return false;
+            }
+        }
+
+        // Показать форму логина
+        function showLoginForm() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('mainContent').classList.add('hidden');
+            token = '';
+            localStorage.removeItem('token');
+            currentUser = null;
+        }
+
+        // Показать основной контент
+        function showMainContent() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('mainContent').classList.remove('hidden');
+            const roleText = currentUser.role === 'admin' ? 'Администратор' : 'Пользователь';
+            document.getElementById('userInfo').textContent = `${currentUser.username} (${roleText})`;
+            
+            // Показываем пункт меню "Все посылки" только для админа
+            const adminLinks = document.querySelectorAll('.admin-only');
+            adminLinks.forEach(link => {
+                link.classList.toggle('hidden', currentUser.role !== 'admin');
+            });
+
+            // Загружаем профиль
+            loadProfile();
+        }
+
+        // Загрузка профиля
+        function loadProfile() {
+            const profileInfo = document.getElementById('profileInfo');
+            profileInfo.innerHTML = `
+                <h4>Информация о пользователе</h4>
+                <p><strong>Имя пользователя:</strong> ${currentUser.username}</p>
+                <p><strong>Роль:</strong> ${currentUser.role === 'admin' ? 'Администратор' : 'Пользователь'}</p>
+            `;
+        }
+
+        // Обработка навигации
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Убираем активный класс у всех ссылок
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                // Добавляем активный класс текущей ссылке
+                this.classList.add('active');
+                
+                // Скрываем все секции
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Показываем нужную секцию
+                const sectionId = this.getAttribute('data-section') + 'Section';
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.classList.add('active');
+                    
+                    // Загружаем соответствующие данные в зависимости от раздела
+                    if (sectionId === 'myPackagesSection') {
+                        loadMyPackages();
+                    } else if (sectionId === 'allPackagesSection') {
+                        loadAllPackages();
+                    }
+                }
+            });
+        });
+
+        // Обработка формы логина
+        document.getElementById('login').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/auth/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    saveToken(data.access_token);
+                    await checkAuth();
+                } else {
+                    alert('Ошибка входа. Проверьте учетные данные.');
+                }
+            } catch (error) {
+                console.error('Ошибка входа:', error);
+                alert('Ошибка входа. Попробуйте снова.');
+            }
+        });
+
+        // Обработка выхода
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            showLoginForm();
+        });
+
+        // Функция для загрузки всех посылок (для админа)
+        async function loadAllPackages() {
+            try {
+                const response = await fetch('/packages/', {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || 'Ошибка при получении списка посылок');
+                }
+                
+                const packages = await response.json();
+                displayAllPackages(packages);
+            } catch (error) {
+                console.error('Ошибка:', error);
+                const packagesList = document.getElementById('packagesList');
+                packagesList.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+            }
+        }
+
+        // Функция для отображения всех посылок
+        function displayAllPackages(packages) {
+            const packagesList = document.getElementById('packagesList');
+            packagesList.innerHTML = '';
+            
+            if (!packages || packages.length === 0) {
+                packagesList.innerHTML = '<div class="alert alert-info">Посылки не найдены</div>';
+                return;
+            }
+            
+            packages.forEach(package => {
+                const card = document.createElement('div');
+                card.className = 'card package-card';
+                card.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title">Посылка #${package.tracking_number}</h5>
+                        <p class="card-text">
+                            <strong>Отправитель:</strong> ${package.sender_name}<br>
+                            <strong>Получатель:</strong> ${package.recipient_name}<br>
+                            <strong>Статус:</strong> ${getStatusText(package.status)}<br>
+                            <strong>Создана:</strong> ${new Date(package.created_at).toLocaleString()}
+                        </p>
+                        <div class="qr-code">
+                            <img id="qr-admin-${package.tracking_number}" alt="QR код" class="img-fluid">
+                        </div>
+                        ${package.status_history ? `
+                        <div class="status-history">
+                            <h6>История статусов:</h6>
+                            <ul class="list-unstyled">
+                                ${package.status_history.map(status => `
+                                    <li>${getStatusText(status.status)} - ${new Date(status.timestamp).toLocaleString()}</li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                packagesList.appendChild(card);
+                
+                // Загружаем QR-код после создания карточки
+                loadQRCode(package.tracking_number, 'admin');
+            });
+        }
+
+        // Функция для применения фильтров к всем посылкам
+        async function applyFilters() {
+            const trackingNumber = document.getElementById('searchTrackingNumber').value;
+            const status = document.getElementById('statusFilter').value;
+            
+            try {
+                const response = await fetch('/packages/', {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || 'Ошибка при получении списка посылок');
+                }
+                
+                const packages = await response.json();
+                let filteredPackages = packages;
+                
+                if (trackingNumber) {
+                    filteredPackages = filteredPackages.filter(pkg => 
+                        pkg.tracking_number.toLowerCase().includes(trackingNumber.toLowerCase())
+                    );
+                }
+                
+                if (status) {
+                    filteredPackages = filteredPackages.filter(pkg => pkg.status === status);
+                }
+                
+                displayAllPackages(filteredPackages);
+            } catch (error) {
+                console.error('Ошибка:', error);
+                const packagesList = document.getElementById('packagesList');
+                packagesList.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+            }
+        }
+
+        // Обновляем обработчик переключения разделов
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Убираем активный класс у всех ссылок
+                document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+                // Добавляем активный класс текущей ссылке
+                this.classList.add('active');
+                
+                // Скрываем все секции
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.classList.remove('active');
+                });
+                
+                // Показываем нужную секцию
+                const sectionId = this.getAttribute('data-section') + 'Section';
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.classList.add('active');
+                    
+                    // Загружаем соответствующие данные в зависимости от раздела
+                    if (sectionId === 'myPackagesSection') {
+                        loadMyPackages();
+                    } else if (sectionId === 'allPackagesSection') {
+                        loadAllPackages();
+                    }
+                }
+            });
+        });
+
+        // Обновляем функцию loadQRCode для поддержки админского контекста
+        async function loadQRCode(trackingNumber, context = 'user') {
+            try {
+                const response = await fetch(`/packages/${trackingNumber}/qr`, {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Ошибка при получении QR-кода');
+                }
+                
+                const blob = await response.blob();
+                const imageUrl = URL.createObjectURL(blob);
+                let imgElement;
+                
+                switch(context) {
+                    case 'admin':
+                        imgElement = document.getElementById(`qr-admin-${trackingNumber}`);
+                        break;
+                    case 'tracking':
+                        imgElement = document.getElementById(`qr-tracking-${trackingNumber}`);
+                        break;
+                    default:
+                        imgElement = document.getElementById(`qr-${trackingNumber}`);
+                }
+                
+                if (imgElement) {
+                    imgElement.src = imageUrl;
+                }
+            } catch (error) {
+                console.error('Ошибка при загрузке QR-кода:', error);
+                let imgElement;
+                
+                switch(context) {
+                    case 'admin':
+                        imgElement = document.getElementById(`qr-admin-${trackingNumber}`);
+                        break;
+                    case 'tracking':
+                        imgElement = document.getElementById(`qr-tracking-${trackingNumber}`);
+                        break;
+                    default:
+                        imgElement = document.getElementById(`qr-${trackingNumber}`);
+                }
+                
+                if (imgElement) {
+                    imgElement.alt = 'Ошибка загрузки QR-кода';
+                }
+            }
+        }
+
+        // Обработка формы создания посылки
+        document.getElementById('createPackageForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const sender_name = document.getElementById('sender_name').value;
+            const sender_address = document.getElementById('sender_address').value;
+            const recipient_name = document.getElementById('recipient_name').value;
+            const recipient_address = document.getElementById('recipient_address').value;
+
+            try {
+                const response = await fetch('/packages/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${getToken()}`
+                    },
+                    body: JSON.stringify({
+                        sender_name: sender_name,
+                        sender_address: sender_address,
+                        recipient_name: recipient_name,
+                        recipient_address: recipient_address
+                    })
+                });
+
+                if (response.ok) {
+                    const package = await response.json();
+                    document.getElementById('createPackageForm').reset();
+                    if (currentUser.role === 'admin') {
+                        loadAllPackages();
+                    }
+                    // Показываем информацию о созданной посылке
+                    document.querySelector('[data-section="trackPackage"]').click();
+                    checkStatus(package.tracking_number);
+                } else {
+                    alert('Ошибка создания посылки');
+                }
+            } catch (error) {
+                console.error('Ошибка создания посылки:', error);
+                alert('Ошибка создания посылки');
+            }
+        });
+
+        // Обработка формы проверки статуса
+        document.getElementById('checkStatusForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const trackingNumber = document.getElementById('trackingNumber').value;
+            await checkStatus(trackingNumber);
+        });
+
+        // Обработка загрузки QR-кода
+        document.getElementById('qrCode').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const formData = new FormData();
+                formData.append('file', file);
+
+                try {
+                    const response = await fetch('/packages/scan-qr', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${getToken()}`
+                        },
+                        body: formData
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        document.getElementById('trackingNumber').value = data.tracking_number;
+                        await checkStatus(data.tracking_number);
+                    } else {
+                        alert('Ошибка сканирования QR-кода');
+                    }
+                } catch (error) {
+                    console.error('Ошибка сканирования QR-кода:', error);
+                    alert('Ошибка сканирования QR-кода');
+                }
+            }
+        });
+
+        // Функция проверки статуса посылки
+        async function checkStatus(trackingNumber) {
+            try {
+                const response = await fetch(`/packages/${trackingNumber}`, {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+
+                if (response.ok) {
+                    const package = await response.json();
+                    displayPackageInfo(package);
+                } else {
+                    alert('Посылка не найдена');
+                }
+            } catch (error) {
+                console.error('Ошибка проверки статуса:', error);
+                alert('Ошибка проверки статуса');
+            }
+        }
+
+        // Отображение информации о посылке
+        function displayPackageInfo(package) {
+            const trackingResults = document.getElementById('trackingResults');
+            
+            trackingResults.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h3>Детали посылки</h3>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <p><strong>Номер отслеживания:</strong> ${package.tracking_number}</p>
+                                <p><strong>Отправитель:</strong> ${package.sender_name}</p>
+                                <p><strong>Адрес отправителя:</strong> ${package.sender_address}</p>
+                                <p><strong>Получатель:</strong> ${package.recipient_name}</p>
+                                <p><strong>Адрес получателя:</strong> ${package.recipient_address}</p>
+                                <p><strong>Текущий статус:</strong> ${package.current_status}</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h4>QR-код</h4>
+                                <div id="qrCodeDisplay"></div>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h4>История статусов</h4>
+                            ${package.status_history && package.status_history.length > 0 ? `
+                                <div class="list-group">
+                                    ${package.status_history.map(status => `
+                                        <div class="list-group-item">
+                                            <p><strong>Статус:</strong> ${status.status}</p>
+                                            <p><strong>Местоположение:</strong> ${status.location}</p>
+                                            <p><strong>Время:</strong> ${new Date(status.timestamp).toLocaleString()}</p>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : '<p>История статусов отсутствует</p>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Загрузка QR-кода
+            fetch(`/packages/${package.tracking_number}/qr`, {
+                headers: {
+                    'Authorization': `Bearer ${getToken()}`
+                }
+            })
+            .then(response => response.blob())
+            .then(blob => {
+                const imageUrl = URL.createObjectURL(blob);
+                document.getElementById('qrCodeDisplay').innerHTML = `
+                    <img src="${imageUrl}" class="qr-code" alt="QR-код">
+                `;
+            })
+            .catch(error => {
+                console.error('Ошибка загрузки QR-кода:', error);
+                document.getElementById('qrCodeDisplay').innerHTML = `
+                    <p class="text-danger">Ошибка загрузки QR-кода</p>
+                `;
+            });
+        }
+
+        // Функция для преобразования статуса в читаемый текст
+        function getStatusText(status) {
+            const statusMap = {
+                'created': 'Создана',
+                'in_transit': 'В пути',
+                'delivered': 'Доставлена'
+            };
+            return statusMap[status] || status;
+        }
+
+        // Функция для отображения моих посылок
+        function displayMyPackages(packages) {
+            const packagesList = document.getElementById('myPackagesList');
+            packagesList.innerHTML = '';
+            
+            if (!packages || packages.length === 0) {
+                packagesList.innerHTML = '<div class="alert alert-info">Посылки не найдены</div>';
+                return;
+            }
+            
+            packages.forEach(package => {
+                const card = document.createElement('div');
+                card.className = 'card package-card';
+                card.innerHTML = `
+                    <div class="card-body">
+                        <h5 class="card-title">Посылка #${package.tracking_number}</h5>
+                        <p class="card-text">
+                            <strong>Отправитель:</strong> ${package.sender_name}<br>
+                            <strong>Получатель:</strong> ${package.recipient_name}<br>
+                            <strong>Статус:</strong> ${getStatusText(package.status)}
+                        </p>
+                        <div class="qr-code">
+                            <img id="qr-${package.tracking_number}" alt="QR код" class="img-fluid">
+                        </div>
+                        ${package.status_history ? `
+                        <div class="status-history">
+                            <h6>История статусов:</h6>
+                            <ul class="list-unstyled">
+                                ${package.status_history.map(status => `
+                                    <li>${getStatusText(status.status)} - ${new Date(status.timestamp).toLocaleString()}</li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+                    </div>
+                `;
+                packagesList.appendChild(card);
+                
+                // Загружаем QR-код после создания карточки
+                loadQRCode(package.tracking_number);
+            });
+        }
+
+        // Функция для загрузки моих посылок при входе в систему
+        async function loadMyPackages() {
+            try {
+                const response = await fetch('/packages/', {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || 'Ошибка при получении списка посылок');
+                }
+                
+                const packages = await response.json();
+                displayMyPackages(packages);
+            } catch (error) {
+                console.error('Ошибка:', error);
+                const packagesList = document.getElementById('myPackagesList');
+                packagesList.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+            }
+        }
+
+        // Функция для применения фильтров к моим посылкам
+        async function applyMyFilters() {
+            const trackingNumber = document.getElementById('mySearchTrackingNumber').value;
+            const status = document.getElementById('myStatusFilter').value;
+            
+            try {
+                const response = await fetch('/packages/', {
+                    headers: {
+                        'Authorization': `Bearer ${getToken()}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.detail || 'Ошибка при получении списка посылок');
+                }
+                
+                const packages = await response.json();
+                let filteredPackages = packages;
+                
+                if (trackingNumber) {
+                    filteredPackages = filteredPackages.filter(pkg => 
+                        pkg.tracking_number.toLowerCase().includes(trackingNumber.toLowerCase())
+                    );
+                }
+                
+                if (status) {
+                    filteredPackages = filteredPackages.filter(pkg => pkg.status === status);
+                }
+                
+                displayMyPackages(filteredPackages);
+            } catch (error) {
+                console.error('Ошибка:', error);
+                const packagesList = document.getElementById('myPackagesList');
+                packagesList.innerHTML = `<div class="alert alert-danger">${error.message}</div>`;
+            }
+        }
+
+        // Проверяем авторизацию при загрузке страницы
+        checkAuth();
+    </script>
 </body>
 </html> 
