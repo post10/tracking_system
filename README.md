@@ -40,7 +40,7 @@
 ### Запуск
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/your-username/tracking_system.git
+git clone https://github.com/post10/tracking_system.git
 cd tracking_system
 ```
 
