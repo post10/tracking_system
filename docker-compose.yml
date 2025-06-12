@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/tracking_system
+    depends_on:
+      - db
+    volumes:
+      - ./app:/app/app:delegated
+    networks:
+      - tracking-network
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=tracking_system
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - tracking-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  tracking-network:
+    driver: bridge 
