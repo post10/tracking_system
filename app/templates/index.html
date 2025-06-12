@@ -11,33 +11,102 @@
     <div class="container mt-5">
         <h1 class="text-center mb-4">Система отслеживания посылок</h1>
         
-        <!-- Форма поиска посылки -->
-        <div class="row justify-content-center mb-5">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Отследить посылку</h5>
-                        <form id="trackingForm">
-                            <div class="mb-3">
-                                <input type="text" class="form-control" id="trackingNumber" 
-                                       placeholder="Введите номер отслеживания" required>
+        <!-- Навигация -->
+        <ul class="nav nav-tabs mb-4" id="myTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="track-tab" data-bs-toggle="tab" data-bs-target="#track" type="button" role="tab">Отследить посылку</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="create-tab" data-bs-toggle="tab" data-bs-target="#create" type="button" role="tab">Создать посылку</button>
+            </li>
+        </ul>
+
+        <!-- Содержимое вкладок -->
+        <div class="tab-content" id="myTabContent">
+            <!-- Вкладка отслеживания -->
+            <div class="tab-pane fade show active" id="track" role="tabpanel">
+                <div class="row justify-content-center mb-5">
+                    <div class="col-md-6">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Отследить посылку</h5>
+                                <form id="trackingForm">
+                                    <div class="mb-3">
+                                        <input type="text" class="form-control" id="trackingNumber" 
+                                               placeholder="Введите номер отслеживания" required>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100">Отследить</button>
+                                </form>
                             </div>
-                            <button type="submit" class="btn btn-primary w-100">Отследить</button>
-                        </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Результаты отслеживания -->
+                <div id="trackingResult" class="d-none">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Информация о посылке</h5>
+                            <div id="packageInfo"></div>
+                            <div id="statusHistory" class="mt-4">
+                                <h6>История статусов:</h6>
+                                <div id="statusTimeline"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Результаты отслеживания -->
-        <div id="trackingResult" class="d-none">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Информация о посылке</h5>
-                    <div id="packageInfo"></div>
-                    <div id="statusHistory" class="mt-4">
-                        <h6>История статусов:</h6>
-                        <div id="statusTimeline"></div>
+            <!-- Вкладка создания посылки -->
+            <div class="tab-pane fade" id="create" role="tabpanel">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Создать новую посылку</h5>
+                                <form id="createPackageForm">
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Отправитель</label>
+                                            <input type="text" class="form-control" id="senderName" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Адрес отправителя</label>
+                                            <input type="text" class="form-control" id="senderAddress" required>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Получатель</label>
+                                            <input type="text" class="form-control" id="recipientName" required>
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label class="form-label">Адрес получателя</label>
+                                            <input type="text" class="form-control" id="recipientAddress" required>
+                                        </div>
+                                    </div>
+                                    <button type="submit" class="btn btn-success w-100">Создать посылку</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Результат создания посылки -->
+                <div id="createResult" class="d-none mt-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Посылка создана</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div id="newPackageInfo"></div>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <div id="qrCode"></div>
+                                    <button class="btn btn-primary mt-3" onclick="printQR()">Распечатать QR-код</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

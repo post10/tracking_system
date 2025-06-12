@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 import uuid
+import qrcode
+from io import BytesIO
+from fastapi.responses import StreamingResponse
 
 from ..database import get_db
 from .. import models, schemas
@@ -59,4 +62,37 @@ def update_package_status(
     db.add(status_history)
     db.commit()
     db.refresh(status_history)
-    return status_history 
+    return status_history
+
+@router.get("/{tracking_number}/qr")
+def generate_qr_code(tracking_number: str, db: Session = Depends(get_db)):
+    package = db.query(models.Package).filter(models.Package.tracking_number == tracking_number).first()
+    if package is None:
+        raise HTTPException(status_code=404, detail="Package not found")
+    
+    # Создаем QR-код
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    
+    # Добавляем данные в QR-код
+    qr_data = f"Tracking Number: {package.tracking_number}\n"
+    qr_data += f"From: {package.sender_name}\n"
+    qr_data += f"To: {package.recipient_name}\n"
+    qr_data += f"Status: {package.current_status.value}"
+    
+    qr.add_data(qr_data)
+    qr.make(fit=True)
+    
+    # Создаем изображение
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Сохраняем в буфер
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+    
+    return StreamingResponse(buffer, media_type="image/png") 
