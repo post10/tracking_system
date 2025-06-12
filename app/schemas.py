@@ -4,7 +4,6 @@ from typing import Optional, List
 from .models import PackageStatus
 
 class PackageBase(BaseModel):
-    tracking_number: str
     sender_name: str
     sender_address: str
     recipient_name: str
@@ -31,6 +30,7 @@ class PackageStatusHistory(PackageStatusHistoryBase):
 
 class Package(PackageBase):
     id: int
+    tracking_number: str
     created_at: datetime
     current_status: PackageStatus
     status_history: List[PackageStatusHistory] = []
